@@ -1,0 +1,17 @@
+name: FIslands
+version: 1.0
+main: me.halfquark.fislands.FIslands
+api-version: 1.12
+depend: [WorldEdit, WorldGuard, Vault, Movecraft-Warfare]
+
+commands:
+   island:
+      permission: fisland.island
+      description: Island management, /is help for more info.
+      aliases: is
+      usage: /<command>
+   faction:
+      permission: fislands.faction
+      description: Faction management, /f help for more info.
+      aliases: f
+      usage: /<command>
