@@ -9,9 +9,12 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
+import me.halfquark.fislands.FIslands;
+
 public class Faction implements ConfigurationSerializable {
 	
 	public String name;
+	public String prefix;
 	public UUID owner;
 	public ArrayList<Rank> ranks;
 	public ArrayList<Member> members;
@@ -19,8 +22,9 @@ public class Faction implements ConfigurationSerializable {
 	public ArrayList<String> allies;
 	public double balance;
 	
-	public Faction(String name, UUID owner, ArrayList<Member> members, double balance) {
+	public Faction(String name, String prefix, UUID owner, ArrayList<Member> members, double balance) {
         this.name = name;
+        this.prefix = prefix;
         this.owner = owner;
         this.members = members;
         this.balance = balance;
@@ -32,6 +36,7 @@ public class Faction implements ConfigurationSerializable {
     @SuppressWarnings("unchecked")
     public Faction(Map<String, Object> serializedFaction) {
     	this.name = (String) serializedFaction.get("name");
+    	this.prefix = (String) serializedFaction.get("prefix");
     	this.owner = UUID.fromString((String) serializedFaction.get("owner"));
     	this.members = (ArrayList<Member>) serializedFaction.get("members");
     	this.balance = (double) serializedFaction.get("balance");
@@ -44,6 +49,7 @@ public class Faction implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String, Object> result = new HashMap<>();
         result.put("name", name);
+        result.put("prefix", prefix);
         result.put("owner", owner.toString());
         result.put("members", members);
         result.put("balance", balance);
@@ -55,6 +61,11 @@ public class Faction implements ConfigurationSerializable {
     
     public void setName(String newName) {
     	this.name = newName;
+    	return;
+    }
+    
+    public void setPrefix(String newPrefix) {
+    	this.prefix = newPrefix;
     	return;
     }
     
@@ -99,6 +110,18 @@ public class Faction implements ConfigurationSerializable {
 			return false;
 		for(Member fMember : members) {
 			if(Bukkit.getOfflinePlayer(fMember.uuid).getName().equalsIgnoreCase(memberName)) {
+				members.remove(fMember);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean removeMember(UUID uuid) {
+		if(members.size() == 0)
+			return false;
+		for(Member fMember : members) {
+			if(fMember.uuid.equals(uuid)) {
 				members.remove(fMember);
 				return true;
 			}
@@ -165,7 +188,8 @@ public class Faction implements ConfigurationSerializable {
     
     @SuppressWarnings("unchecked")
 	public static Faction fromPlayer(UUID uuid) {
-    	Config factions = new Config("factions.yml");
+    	Config factions = FIslands.factionsConfig;
+    	factions.reload();
 		List<Faction> factionList = (List<Faction>) factions.getList("Factions");
 		if(factionList == null)
 			return null;
@@ -180,7 +204,8 @@ public class Faction implements ConfigurationSerializable {
     
     @SuppressWarnings("unchecked")
 	public static Faction fromName(String name) {
-		Config factions = new Config("factions.yml");
+    	Config factions = FIslands.factionsConfig;
+    	factions.reload();
 		List<Faction> factionList = (List<Faction>) factions.getList("Factions");
 		if(factionList == null)
 			return null;

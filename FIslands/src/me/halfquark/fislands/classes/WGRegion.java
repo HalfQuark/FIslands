@@ -54,6 +54,8 @@ public class WGRegion {
 	
 	public void setMembers(String[] members) {
 		region.getMembers().removeAll();
+		if(members == null)
+			return;
 		for(String member : members)
 			region.getMembers().addPlayer(Bukkit.getOfflinePlayer(member).getUniqueId());
 	}

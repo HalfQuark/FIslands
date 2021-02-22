@@ -17,7 +17,7 @@ public class Island implements ConfigurationSerializable {
 	public UUID og;
 	public Double balance;
 	public Integer size;
-	public Map<String, Integer> assaultPoints;
+	public HashMap<String, Integer> assaultPoints;
 	public Integer conquestCooldown;
 	
 	public Island(WGRegion region, UUID og, Double balance, Integer size) {
@@ -25,7 +25,7 @@ public class Island implements ConfigurationSerializable {
 		this.og = og;
 		this.balance = balance;
 		this.size = size;
-		this.assaultPoints = null;
+		this.assaultPoints = new HashMap<String, Integer>();
 		this.conquestCooldown = 0;
 	}
 	
@@ -37,7 +37,7 @@ public class Island implements ConfigurationSerializable {
     	this.og = UUID.fromString((String) serializedFaction.get("og"));
     	this.balance = (Double) serializedFaction.get("balance");
     	this.size = (Integer) serializedFaction.get("size");
-    	this.assaultPoints = (Map<String, Integer>) serializedFaction.get("assaultPoints");
+    	this.assaultPoints = (HashMap<String, Integer>) serializedFaction.get("assaultPoints");
     	this.conquestCooldown = (Integer) serializedFaction.get("conquestCooldown");
 	}
     

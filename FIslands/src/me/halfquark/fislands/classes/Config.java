@@ -30,4 +30,12 @@ public class Config extends YamlConfiguration {
 			e.printStackTrace();
 		}
 	}
+	
+	public void reload() {
+		try {
+			this.load(file);
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
 }

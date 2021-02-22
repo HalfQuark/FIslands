@@ -3,6 +3,7 @@ package me.halfquark.fislands.commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -45,14 +46,14 @@ public class IsCommandEx implements CommandExecutor{
 	List<Island> islandList;
 	IslandBoundary islandBoundary;
 	
-	public IsCommandEx(FIslands plugin) {
-		this.plugin = plugin;
+	public IsCommandEx() {
+		plugin = FIslands.instance;
 		config = plugin.getConfig();
-		this.economy = plugin.getEconomy();
+		economy = plugin.getEconomy();
 		if(economy == null) {
 			Bukkit.getLogger().log(Level.SEVERE, "[FIslands] Economy not passed to IsCommandEx");
         }
-		islands = new Config("islands.yml");
+		islands = FIslands.islandsConfig;
 	}
 	
 	@SuppressWarnings({ "unchecked", "deprecation" })
@@ -90,6 +91,7 @@ public class IsCommandEx implements CommandExecutor{
 				+ "There is already a region with this name"));
 				return true;
 			}
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
@@ -139,6 +141,7 @@ public class IsCommandEx implements CommandExecutor{
 		case "info":
 			if(args.length < 2)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList == null || islandList.size() == 0) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
@@ -148,6 +151,11 @@ public class IsCommandEx implements CommandExecutor{
 			for(Island island : islandList) {
 				if(island == null)
 					continue;
+				if(island.region == null) {
+					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+					+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+					continue;
+				}
 				if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 							+ config.getString("msg_accent") + island.region.getRegion().getId()));
@@ -167,12 +175,12 @@ public class IsCommandEx implements CommandExecutor{
 							+ "  Days remaining: " + (int)(island.balance / getUpkeep(island.size))));
 					if(island.assaultPoints != null) {
 						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
-								+ "  Assault points: " + (int)(island.balance / getUpkeep(island.size))));
+								+ "  Assault points: "));
 						for(Map.Entry<String, Integer> mapEntry : island.assaultPoints.entrySet()) {
 							if(mapEntry == null)
 								continue;
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
-									+ "   " + Bukkit.getOfflinePlayer(mapEntry.getKey()).getName() + ": " + mapEntry.getValue()));
+									+ "   " + Bukkit.getOfflinePlayer(UUID.fromString(mapEntry.getKey())).getName() + ": " + mapEntry.getValue()));
 						}
 					}
 					return true;
@@ -192,6 +200,7 @@ public class IsCommandEx implements CommandExecutor{
 					page = 1;
 				}
 			}
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList == null || islandList.size() == 0) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
@@ -206,6 +215,11 @@ public class IsCommandEx implements CommandExecutor{
 			for(Integer i = 10 * (page - 1); i < islandList.size() && i < 10* page; i++) {
 				if(islandList.get(i) == null)
 					continue;
+				if(islandList.get(i).region == null) {
+					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+					+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+					continue;
+				}
 				identifier = ' ';
 				if(islandList.get(i).region.getRegion().getMembers().contains(WorldGuardPlugin.inst().wrapPlayer(pSender)))
 					identifier = '+';
@@ -220,11 +234,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "unclaim":
 			if(args.length != 2)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.og.equals(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -251,11 +271,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "transfer":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.og.equals(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -284,11 +310,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "deposit":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.region.getRegion().getOwners().contains(WorldGuardPlugin.inst().wrapPlayer(pSender))
 								&& !island.region.getRegion().getMembers().contains(WorldGuardPlugin.inst().wrapPlayer(pSender))) {
@@ -325,11 +357,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "withdraw":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.region.getRegion().getOwners().contains(WorldGuardPlugin.inst().wrapPlayer(pSender))) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -365,11 +403,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "addmember":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.region.getRegion().getOwners().contains(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -397,11 +441,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "removemember":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.region.getRegion().getOwners().contains(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -434,11 +484,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "addowner":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.og.equals(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -466,11 +522,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "removeowner":
 			if(args.length != 3)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.og.equals(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -503,11 +565,17 @@ public class IsCommandEx implements CommandExecutor{
 		case "expand":
 			if(args.length != 2)
 				return help(args, pSender);
+			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
 			if(islandList != null && islandList.size() != 0) {
 				for(Island island : islandList) {
 					if(island == null)
 						continue;
+					if(island.region == null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
+						continue;
+					}
 					if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
 						if(!island.og.equals(pSender.getUniqueId())) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")

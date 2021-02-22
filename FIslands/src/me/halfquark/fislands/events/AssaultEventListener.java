@@ -1,6 +1,7 @@
 package me.halfquark.fislands.events;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -16,7 +17,6 @@ import me.halfquark.fislands.FIslands;
 import me.halfquark.fislands.classes.Config;
 import me.halfquark.fislands.classes.Island;
 import net.countercraft.movecraft.warfare.assault.Assault;
-import net.countercraft.movecraft.warfare.events.AssaultWinEvent;
 
 public class AssaultEventListener implements Listener {
 	
@@ -24,9 +24,9 @@ public class AssaultEventListener implements Listener {
 	Config islands;
 	FileConfiguration config;
 	
-	public AssaultEventListener(FIslands plugin) {
-		this.plugin = plugin;
-		islands = new Config("islands.yml");
+	public AssaultEventListener() {
+		plugin = FIslands.instance;
+		islands = FIslands.islandsConfig;
 		config = plugin.getConfig();
 	}
 	
@@ -34,12 +34,16 @@ public class AssaultEventListener implements Listener {
 	public void onAssaultWin(final AssaultWinEvent assaultEvent) {
 		Assault assault = assaultEvent.getAssault();
 		assault.getStarterUUID();
+		islands.reload();
 		@SuppressWarnings("unchecked")
 		List<Island> islandList = (List<Island>) islands.getList("Islands");
 		List<Island> newIslandList = new ArrayList<Island>();
 		for(Island island : islandList) {
 			if(island.region.getRegion().getId().equals(assault.getRegionName())) {
 				Integer APs = 0;
+				if(island.assaultPoints == null) {
+					island.assaultPoints = new HashMap<String, Integer>();
+				}
 				if(island.assaultPoints.get(assault.getStarterUUID().toString()) != null) {
 					APs = island.assaultPoints.get(assault.getStarterUUID().toString());
 				}
@@ -47,17 +51,23 @@ public class AssaultEventListener implements Listener {
 				island.assaultPoints.put(assault.getStarterUUID().toString(), APs);
 				Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 						+ Bukkit.getPlayer(assault.getStarterUUID()).getDisplayName() + " has successfully assaulted " + assault.getRegionName()
-						+ "and is now holding " + APs + "/" + config.getInt("assault_cap") + " Assault Points"));
+						+ " and is now holding " + APs + "/" + config.getInt("assault_cap") + " Assault Points"));
 				if(APs >= config.getInt("assault_cap")) {
 					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 					+ Bukkit.getPlayer(assault.getStarterUUID()).getDisplayName() + " has successfully conquered " + assault.getRegionName()));
 					island.og = assault.getStarterUUID();
+					if(island.region == null) {
+						Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ "Something has gone terribly wrong. Please contact an admin. Error:AssaultWinNullRegion"));
+					} else {
 					island.region.setOwners(null);
 					island.region.addOwner(Bukkit.getPlayer(assault.getStarterUUID()).getName());
 					island.region.setMembers(null);
 					island.region.getRegion().setFlag(DefaultFlag.BLOCK_BREAK, StateFlag.State.DENY);
 					island.region.getRegion().setFlag(DefaultFlag.BLOCK_PLACE, StateFlag.State.DENY);
+					}
 					island.conquestCooldown = config.getInt("conquest_cooldown");
+					island.assaultPoints = null;
 				}
 			}
 			newIslandList.add(island);

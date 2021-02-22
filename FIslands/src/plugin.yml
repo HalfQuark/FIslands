@@ -2,7 +2,7 @@ name: FIslands
 version: 1.0
 main: me.halfquark.fislands.FIslands
 api-version: 1.12
-depend: [WorldEdit, WorldGuard, Vault, Movecraft-Warfare]
+depend: [WorldEdit, WorldGuard, Vault, Movecraft]
 
 commands:
    island:

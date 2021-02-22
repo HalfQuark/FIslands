@@ -25,11 +25,12 @@ public class DailyTimer {
 	@SuppressWarnings("unused")
 	private FIslands plugin;
 	private FileConfiguration config;
+	private Timer timer;
 	
 	public DailyTimer(FIslands plugin){
 		this.plugin = plugin;
 		this.config = plugin.getConfig();
-		Timer timer = new Timer();
+		timer = new Timer();
 		TimerTask tt = new TimerTask() {
 			@Override
 			public void run() {
@@ -41,7 +42,7 @@ public class DailyTimer {
 				long dayMs = ((long)LocalDateTime.now().getHour()) * 3600000L +
 						((long)LocalDateTime.now().getMinute()) * 60000L + 
 						((long)LocalDateTime.now().getSecond()) * 1000L;
-				if(dayMs <= plugin.getConfig().getLong("upkeep_check_ms")) {
+				if(dayMs < plugin.getConfig().getLong("upkeep_check_ms")) {
 					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 						+ "[A day has passed and Island upkeeps have been charged]"));
 					Config islands = new Config("islands.yml");
@@ -95,4 +96,9 @@ public class DailyTimer {
 	private Double getUpkeep(Integer x) {
 		return config.getDouble("i_upkeep_base") + x * config.getDouble("i_upkeep_size_multiplier");
 	}
+	
+	public void stopTimer() {
+		timer.cancel();
+	}
+	
 }

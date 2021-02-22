@@ -34,14 +34,14 @@ public class FCommandEx implements CommandExecutor{
 	List<Faction> factionList;
 	IslandBoundary islandBoundary;
 	
-	public FCommandEx(FIslands plugin) {
-		this.plugin = plugin;
+	public FCommandEx() {
+		plugin = FIslands.instance;
 		config = plugin.getConfig();
-		this.economy = plugin.getEconomy();
+		economy = plugin.getEconomy();
 		if(economy == null) {
 			Bukkit.getLogger().log(Level.SEVERE, "[FIslands] Economy not passed to FCommandEx");
         }
-		factions = new Config("factions.yml");
+		factions = FIslands.factionsConfig;
 	}
 	
 	@SuppressWarnings({ "unchecked", "deprecation" })
@@ -71,12 +71,13 @@ public class FCommandEx implements CommandExecutor{
 					+ "You need at least " + config.getDouble("f_creation_price") + "$"));
 				return true;
 			}
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
 					if(faction == null)
 						continue;
-					if(faction.name.equalsIgnoreCase(args[1])) {
+					if(faction.name.equalsIgnoreCase(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',args[1])))) {
 						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 						+ "There is already a Faction with this name"));
 						return true;
@@ -87,17 +88,18 @@ public class FCommandEx implements CommandExecutor{
 			}
 			ArrayList<Member> MemberList = new ArrayList<Member>();
 			MemberList.add(new Member(pSender.getUniqueId()));
-			Faction newFaction = new Faction(args[1], pSender.getUniqueId(), MemberList, config.getDouble("f_creation_bal"));
+			Faction newFaction = new Faction(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',args[1])), args[1], pSender.getUniqueId(), MemberList, config.getDouble("f_creation_bal"));
 			economy.withdrawPlayer(pSender, config.getDouble("f_creation_price"));
 			factionList.add(newFaction);
 			factions.set("Factions", factionList);
 			factions.save();
 			Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
-					+ config.getString("msg_accent")+ "The faction " + args[1] + " has been created by " + pSender.getName() ));
+					+ config.getString("msg_accent")+ "The faction " + ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',args[1])) + " has been created by " + pSender.getName() ));
 			return true;
 		case "info":
 			if(args.length < 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList == null || factionList.size() == 0) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
@@ -110,6 +112,8 @@ public class FCommandEx implements CommandExecutor{
 				if(faction.name.equalsIgnoreCase(args[1])) {
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 							+ config.getString("msg_accent") + faction.name));
+					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+							+ "  Prefix: " + faction.prefix));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 							+ "  Owner: " + Bukkit.getOfflinePlayer(faction.owner).getName()));
 					for(Rank rank: faction.ranks) {
@@ -165,7 +169,7 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 				+ config.getString("msg_accent")+ "There is no faction with this name"));
-			break;
+			return true;
 		case "list":
 			Integer page;
 			if(args.length <= 1) {
@@ -177,6 +181,7 @@ public class FCommandEx implements CommandExecutor{
 					page = 1;
 				}
 			}
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList == null || factionList.size() == 0) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
@@ -197,6 +202,7 @@ public class FCommandEx implements CommandExecutor{
 		case "disband":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -220,10 +226,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "There is no Faction with this name"));
-			break;
+			return true;
 		case "transfer":
 			if(args.length != 3)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -252,10 +259,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "There is no Faction with this name"));
-			break;
+			return true;
 		case "deposit":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -292,10 +300,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "withdraw":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -332,10 +341,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "join":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(Faction.fromPlayer(pSender.getUniqueId()) != null) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -364,10 +374,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "There is no Faction with this name"));
-			break;
+			return true;
 		case "leave":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -384,7 +395,7 @@ public class FCommandEx implements CommandExecutor{
 								+ "You are this Faction's owner. Disband or transfer ownership before leaving"));
 							return true;
 						}
-						faction.removeMember(args[1]);
+						faction.removeMember(pSender.getUniqueId());
 						faction.broadcast(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 						+ pSender.getName() + " has left the faction"));
 						factions.set("Factions", factionList);
@@ -395,10 +406,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "There is no Faction with this name"));
-			break;
+			return true;
 		case "invite":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -429,10 +441,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "uninvite":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -466,10 +479,38 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
+		case "kick":
+			if(args.length != 2)
+				return help(args, pSender);
+			factions.reload();
+			factionList = (List<Faction>) factions.getList("Factions");
+			if(factionList != null && factionList.size() != 0) {
+				for(Faction faction : factionList) {
+					if(faction == null)
+						continue;
+					if(faction.getMember(pSender.getUniqueId()) != null) {
+						if(faction.getMember(args[1]) != null) {
+							faction.broadcast(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+							+ pSender.getName() + " has kicked " + Bukkit.getOfflinePlayer(faction.getMember(args[1]).uuid).getName() +  " from the faction"));
+							faction.removeMember(args[1]);
+							factions.set("Factions", factionList);
+							factions.save();
+							return true;
+						}
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+							+ "There is no member with this name"));
+						return true;
+					}
+				}
+			}
+			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+				+ "You do not belong to any faction"));
+			return true;
 		case "newrank":
 			if(args.length != 3)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -510,10 +551,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "delrank":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -548,10 +590,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "setrank":
 			if(args.length != 3)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -584,18 +627,19 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "listperms":
 			if(args.length != 1)
 				return help(args, pSender);
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "Rank permissions:"));
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
-				+ "  deposit,withdraw,invite,uninvite,newrank,delrank,setrank:[rank name],ally,unally"));
-			break;
+				+ "  deposit,withdraw,invite,uninvite,kick,newrank,delrank,setrank:[rank name],ally,unally,rename,setprefix"));
+			return true;
 		case "ally":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -629,10 +673,11 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
 		case "unally":
 			if(args.length != 2)
 				return help(args, pSender);
+			factions.reload();
 			factionList = (List<Faction>) factions.getList("Factions");
 			if(factionList != null && factionList.size() != 0) {
 				for(Faction faction : factionList) {
@@ -668,7 +713,72 @@ public class FCommandEx implements CommandExecutor{
 			}
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "You do not belong to any faction"));
-			break;
+			return true;
+		case "rename":
+			if(args.length != 2)
+				return help(args, pSender);
+			factions.reload();
+			factionList = (List<Faction>) factions.getList("Factions");
+			if(factionList != null && factionList.size() != 0) {
+				for(Faction faction : factionList) {
+					if(faction == null)
+						continue;
+					if(faction.getMember(pSender.getUniqueId()) == null)
+						continue;
+					if(!faction.getMember(pSender.getUniqueId()).hasPermission("rename") && !faction.owner.equals(pSender.getUniqueId())) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+							+ "You do not have rank permissions to do this"));
+						return true;
+					}
+					if(factionList != null && factionList.size() != 0) {
+						for(Faction faction1 : factionList) {
+							if(faction1 == null)
+								continue;
+							if(faction1.name.equalsIgnoreCase(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',args[1])))) {
+								pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+								+ "There is already a Faction with this name"));
+								return true;
+							}
+						}
+					}
+					faction.setName(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',args[1])));
+					faction.broadcast(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ pSender.getName() + " has changed the faction's name to: " + faction.name));
+					factions.set("Factions", factionList);
+					factions.save();
+					return true;
+				}
+			}
+			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+				+ "You do not belong to any faction"));
+			return true;
+		case "setprefix":
+			if(args.length != 2)
+				return help(args, pSender);
+			factions.reload();
+			factionList = (List<Faction>) factions.getList("Factions");
+			if(factionList != null && factionList.size() != 0) {
+				for(Faction faction : factionList) {
+					if(faction == null)
+						continue;
+					if(faction.getMember(pSender.getUniqueId()) == null)
+						continue;
+					if(!faction.getMember(pSender.getUniqueId()).hasPermission("setprefix") && !faction.owner.equals(pSender.getUniqueId())) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+							+ "You do not have rank permissions to do this"));
+						return true;
+					}
+					faction.setPrefix(args[1]);
+					faction.broadcast(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+						+ pSender.getName() + " has changed the faction's prefix to: " + faction.prefix));
+					factions.set("Factions", factionList);
+					factions.save();
+					return true;
+				}
+			}
+			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+				+ "You do not belong to any faction"));
+			return true;
 		}
 		return help(args, pSender);
 	}
@@ -742,6 +852,12 @@ public class FCommandEx implements CommandExecutor{
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 					+ "Uninvite a player to your Faction."));
 				return true;
+			case "kick":
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+					+ "/f kick <player name>"));
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+					+ "Kick a player from your Faction."));
+				return true;
 			case "newrank":
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 					+ "/f newrank <rank name> [permission 1],[permission 2]..."));
@@ -778,6 +894,18 @@ public class FCommandEx implements CommandExecutor{
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 					+ "Unally an allied Faction."));
 				return true;
+			case "rename":
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+					+ "/f rename <new name>"));
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+					+ "Rename your Faction."));
+				return true;
+			case "setprefix":
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+					+ "/f setprefix <prefix>"));
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+					+ "Change your Faction's prefix."));
+				return true;
 			}
 		}
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -805,6 +933,8 @@ public class FCommandEx implements CommandExecutor{
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 				+ " uninvite"));
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+				+ " kick"));
+		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 				+ " newrank"));
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 				+ " setrank"));
@@ -816,6 +946,10 @@ public class FCommandEx implements CommandExecutor{
 				+ " ally"));
 		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 				+ " unally"));
+		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+				+ " rename"));
+		player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+				+ " setprefix"));
 		return true;
 	}
 }
