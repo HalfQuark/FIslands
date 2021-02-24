@@ -22,14 +22,15 @@ import me.halfquark.fislands.classes.Island;
 
 public class DailyTimer {
 	
-	@SuppressWarnings("unused")
 	private FIslands plugin;
 	private FileConfiguration config;
 	private Timer timer;
+	private Config islands;
 	
-	public DailyTimer(FIslands plugin){
-		this.plugin = plugin;
-		this.config = plugin.getConfig();
+	public DailyTimer(){
+		plugin = FIslands.instance;
+		config = plugin.getConfig();
+		islands = FIslands.islandsConfig;
 		timer = new Timer();
 		TimerTask tt = new TimerTask() {
 			@Override
@@ -45,7 +46,7 @@ public class DailyTimer {
 				if(dayMs < plugin.getConfig().getLong("upkeep_check_ms")) {
 					Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 						+ "[A day has passed and Island upkeeps have been charged]"));
-					Config islands = new Config("islands.yml");
+					islands.reload();
 					@SuppressWarnings("unchecked")
 					List<Island> islandList = (List<Island>) islands.getList("Islands");
 					List<Island> newIslandList = new ArrayList<Island>();

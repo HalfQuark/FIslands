@@ -44,8 +44,8 @@ public class FIslands extends JavaPlugin {
 		getCommand("faction").setExecutor(new FCommandEx());
 		this.saveDefaultConfig();
 		getConfig().options().copyDefaults(true);
-		dailyTimer = new DailyTimer(this);
-		assaultTimer = new AssaultTimer(this);
+		dailyTimer = new DailyTimer();
+		assaultTimer = new AssaultTimer();
 		Bukkit.getPluginManager().registerEvents(new AssaultEventListener(), this);
 	}
 	

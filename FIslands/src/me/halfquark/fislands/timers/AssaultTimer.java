@@ -17,7 +17,6 @@ import net.countercraft.movecraft.warfare.assault.AssaultManager;
 
 public class AssaultTimer {
 	
-	@SuppressWarnings("unused")
 	private FIslands plugin;
 	@SuppressWarnings("unused")
 	private FileConfiguration config;
@@ -25,9 +24,9 @@ public class AssaultTimer {
 	private List<Assault> assaultList;
 	private Timer timer;
 	
-	public AssaultTimer(FIslands plugin){
-		this.plugin = plugin;
-		this.config = plugin.getConfig();
+	public AssaultTimer(){
+		plugin = FIslands.instance;
+		config = plugin.getConfig();
 		assaultManager = Movecraft.getInstance().getAssaultManager();
 		timer = new Timer();
 		TimerTask tt = new TimerTask() {

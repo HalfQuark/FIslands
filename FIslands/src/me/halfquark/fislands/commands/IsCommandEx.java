@@ -25,9 +25,11 @@ import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import me.halfquark.fislands.FIslands;
 import me.halfquark.fislands.classes.Config;
+import me.halfquark.fislands.classes.Faction;
 import me.halfquark.fislands.classes.Island;
 import me.halfquark.fislands.classes.WGRegion;
 import me.halfquark.fislands.utilities.BlockQuery;
@@ -139,7 +141,7 @@ public class IsCommandEx implements CommandExecutor{
 					+ config.getString("msg_primary")+ "Island claimed successfully!"));
 			return true;
 		case "info":
-			if(args.length < 2)
+			if(args.length > 3)
 				return help(args, pSender);
 			islands.reload();
 			islandList = (List<Island>) islands.getList("Islands");
@@ -147,6 +149,27 @@ public class IsCommandEx implements CommandExecutor{
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 						+ config.getString("msg_accent")+ "There are no islands on this server"));
 				break;
+			}
+			String isName;
+			if(args.length == 1) {
+				ApplicableRegionSet regionSet = regQuery.getApplicableRegions(pSender.getLocation());
+				if(regionSet.size() > 1) {
+					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
+							+ config.getString("msg_accent")+ "You are standing in multiple regions. Please specify one of the following:"));
+					for(ProtectedRegion region : regionSet) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
+								+ config.getString("msg_primary") + "  " + region.getId()));
+					}
+					return true;
+				}
+				if(regionSet.size() == 0) {
+					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
+							+ config.getString("msg_accent")+ "There is no island in this position"));
+					return true;
+				}
+				isName = regionSet.getRegions().iterator().next().getId();
+			} else {
+				isName = args[1];
 			}
 			for(Island island : islandList) {
 				if(island == null)
@@ -156,7 +179,7 @@ public class IsCommandEx implements CommandExecutor{
 					+ "Something has gone terribly wrong. Please contact an admin. Error:IslandNullRegion"));
 					continue;
 				}
-				if(island.region.getRegion().getId().equalsIgnoreCase(args[1])) {
+				if(island.region.getRegion().getId().equalsIgnoreCase(isName)) {
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 							+ config.getString("msg_accent") + island.region.getRegion().getId()));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
@@ -165,6 +188,8 @@ public class IsCommandEx implements CommandExecutor{
 							+ "  Owners: " + island.region.getRegion().getOwners().getPlayers().toString()));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 							+ "  Members: " + island.region.getRegion().getMembers().getPlayers().toString()));
+					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+							+ "  Faction: " + Faction.fromPlayer(island.og).name));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_accent")
 							+ "  Size: " + island.size));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_accent")
@@ -186,9 +211,14 @@ public class IsCommandEx implements CommandExecutor{
 					return true;
 				}
 			}
-			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
-				+ config.getString("msg_accent")+ "There is no island with this name"));
-			break;
+			if(args.length == 1) {
+				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
+						+ config.getString("msg_accent")+ "There is no island in this position"));
+			} else {
+				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
+						+ config.getString("msg_accent")+ "There is no island with this name"));
+			}
+			return true;
 		case "list":
 			Integer page;
 			if(args.length <= 1) {
@@ -585,6 +615,11 @@ public class IsCommandEx implements CommandExecutor{
 						if(island.balance < config.getInt("i_expansion_price")) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 								+ "Not enough Island's balance. You need " + config.getDouble("i_expansion_price") + "$"));
+							return true;
+						}
+						if(island.size + config.getInt("i_expansion_size") > config.getInt("i_expansion_limit")) {
+							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
+								+ "This island has reached the maximum size. You cannot expand it further"));
 							return true;
 						}
 						island.balance -= config.getDouble("i_expansion_price");
