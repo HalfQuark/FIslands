@@ -1,12 +1,11 @@
 package me.halfquark.fislands.classes;
 
-import java.io.File;
-import java.io.IOException;
-
+import me.halfquark.fislands.FIslands;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import me.halfquark.fislands.FIslands;
+import java.io.File;
+import java.io.IOException;
 
 public class Config extends YamlConfiguration {
 	

@@ -1,22 +1,5 @@
 package me.halfquark.fislands.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.logging.Level;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-
 import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.bukkit.RegionQuery;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
@@ -26,7 +9,6 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import me.halfquark.fislands.FIslands;
 import me.halfquark.fislands.classes.Config;
 import me.halfquark.fislands.classes.Faction;
@@ -35,6 +17,18 @@ import me.halfquark.fislands.classes.WGRegion;
 import me.halfquark.fislands.utilities.BlockQuery;
 import me.halfquark.fislands.utilities.IslandBoundary;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.logging.Level;
 
 public class IsCommandEx implements CommandExecutor{
 	
@@ -106,7 +100,7 @@ public class IsCommandEx implements CommandExecutor{
 					}
 				}
 			} else {
-				islandList = new ArrayList<Island>();
+				islandList = new ArrayList<>();
 			}
 			com.sk89q.worldedit.BlockVector corner1 = new com.sk89q.worldedit.BlockVector(coreLoc.getX() + config.getInt("i_creation_bound_x1")
 																					, 0
@@ -116,7 +110,11 @@ public class IsCommandEx implements CommandExecutor{
 																					, coreLoc.getZ() + config.getInt("i_creation_bound_z2"));
 			ProtectedCuboidRegion testRegion = new ProtectedCuboidRegion("dummy", corner1, corner2);
 			RegionManager regManager = regContainer.get(pSender.getWorld());
-			ApplicableRegionSet set = regManager.getApplicableRegions(testRegion);
+			try {
+				ApplicableRegionSet set = regManager.getApplicableRegions(testRegion);
+			} catch(NullPointerException e) {
+				e.printStackTrace();
+			}
 			if(set.size() > config.getInt("i_creation_overlap_regions")) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "The island region intersects with claimed regions"));
@@ -160,12 +158,12 @@ public class IsCommandEx implements CommandExecutor{
 						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 								+ config.getString("msg_primary") + "  " + region.getId()));
 					}
-					return true;
+					break;
 				}
 				if(regionSet.size() == 0) {
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 							+ config.getString("msg_accent")+ "There is no island in this position"));
-					return true;
+					break;
 				}
 				isName = regionSet.getRegions().iterator().next().getId();
 			} else {
@@ -188,8 +186,11 @@ public class IsCommandEx implements CommandExecutor{
 							+ "  Owners: " + island.region.getRegion().getOwners().getPlayers().toString()));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 							+ "  Members: " + island.region.getRegion().getMembers().getPlayers().toString()));
-					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
-							+ "  Faction: " + Faction.fromPlayer(island.og).name));
+					Faction ogFaction = Faction.fromPlayer(island.og);
+					if(ogFaction != null) {
+						pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
+								+ "  Faction: " + ogFaction.name));
+					}
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_accent")
 							+ "  Size: " + island.size));
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_accent")
@@ -216,11 +217,12 @@ public class IsCommandEx implements CommandExecutor{
 						+ config.getString("msg_accent")+ "There is no island in this position"));
 			} else {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
-						+ config.getString("msg_accent")+ "There is no island with this name"));
+						+ config.getString("msg_accent") + "There is no island with this name"));
+				return true;
 			}
-			return true;
+			break;
 		case "list":
-			Integer page;
+			int page;
 			if(args.length <= 1) {
 				page = 1;
 			}else {
@@ -242,7 +244,7 @@ public class IsCommandEx implements CommandExecutor{
 			pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 					+ config.getString("msg_accent") + "Island list " + config.getString("msg_primary") + "[page:" + page + "/" + (islandList.size() / 10 + 1) + "]"));
 			char identifier;
-			for(Integer i = 10 * (page - 1); i < islandList.size() && i < 10* page; i++) {
+			for(int i = 10 * (page - 1); i < islandList.size() && i < 10* page; i++) {
 				if(islandList.get(i) == null)
 					continue;
 				if(islandList.get(i).region == null) {
@@ -632,7 +634,11 @@ public class IsCommandEx implements CommandExecutor{
 																								, island.region.getRegion().getMaximumPoint().getZ() + config.getInt("i_expansion_size"));
 						ProtectedCuboidRegion newRegion = new ProtectedCuboidRegion("dummy", bv1, bv2);
 						regManager = regContainer.get(pSender.getWorld());
-						set = regManager.getApplicableRegions(newRegion);
+						try {
+							set = regManager.getApplicableRegions(newRegion);
+						} catch(NullPointerException e) {
+							e.printStackTrace();
+						}
 						if(set.size() > config.getInt("i_creation_overlap_regions") + 1) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 							+ "The expansion intersects with claimed regions"));
@@ -668,7 +674,7 @@ public class IsCommandEx implements CommandExecutor{
 				return true;
 			case "info":
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
-					+ "/is info <island name>"));
+					+ "/is info [island name]"));
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_primary")
 					+ " Display island info."));
 				return true;

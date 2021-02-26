@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FIslands">
+    <output-path>$PROJECT_DIR$/out/artifacts/FIslands</output-path>
+    <root id="archive" name="FIslands.jar">
+      <element id="module-output" name="FIslands" />
+      <element id="file-copy" path="$USER_HOME$/Documents/Plugins/plugins/Movecraft.jar" />
+      <element id="file-copy" path="$USER_HOME$/Documents/Plugins/spigot.jar" />
+      <element id="file-copy" path="$USER_HOME$/Documents/Plugins/plugins/Vault.jar" />
+      <element id="file-copy" path="$USER_HOME$/Documents/Plugins/plugins/worldedit-bukkit-6.1.9.jar" />
+      <element id="file-copy" path="$USER_HOME$/Documents/Plugins/plugins/worldguard-6.2.1.jar" />
+    </root>
+  </artifact>
+</component>
