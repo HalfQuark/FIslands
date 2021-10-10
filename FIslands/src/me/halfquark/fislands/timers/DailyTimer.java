@@ -6,13 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 
@@ -82,8 +84,8 @@ public class DailyTimer {
 						+ island.region.getRegion().getId() + " does not have enough money and has fallen into ruin"));
 						IslandBoundary islandBoundary = new IslandBoundary(island.region.world, island.region.getRegion());
 						islandBoundary.destroyBoundary();
-						RegionContainer regContainer = WorldGuardPlugin.inst().getRegionContainer();
-						RegionManager regManager = regContainer.get(island.region.world);
+						RegionContainer regContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
+						RegionManager regManager = regContainer.get(BukkitAdapter.adapt(island.region.world));
 						regManager.removeRegion(island.region.getRegion().getId());
 						continue;
 						//FIslands.instance.getEconomy().depositPlayer(Bukkit.getOfflinePlayer(island.og), island.balance);
@@ -110,8 +112,8 @@ public class DailyTimer {
 				if(island.conquestCooldown > 0) {
 					island.conquestCooldown--;
 					if(island.conquestCooldown == 0) {
-						island.region.getRegion().setFlag(DefaultFlag.BLOCK_BREAK, StateFlag.State.ALLOW);
-						island.region.getRegion().setFlag(DefaultFlag.BLOCK_PLACE, StateFlag.State.ALLOW);
+						island.region.getRegion().setFlag(Flags.BLOCK_BREAK, StateFlag.State.ALLOW);
+						island.region.getRegion().setFlag(Flags.BLOCK_PLACE, StateFlag.State.ALLOW);
 					}
 				}
 				newIslandList.add(island);

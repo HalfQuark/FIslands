@@ -4,6 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.BukkitWorldGuardPlatform;
+import com.sk89q.worldguard.domains.DefaultDomain;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.managers.RegionManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -19,6 +26,7 @@ public class Island implements ConfigurationSerializable {
 	public Integer size;
 	public HashMap<String, Integer> assaultPoints;
 	public Integer conquestCooldown;
+	public RegionManager regionManager;
 	
 	public Island(WGRegion region, UUID og, Double balance, Integer size) {
 		this.region = region;
@@ -32,7 +40,8 @@ public class Island implements ConfigurationSerializable {
 	@SuppressWarnings("unchecked")
 	public Island(Map<String, Object> serializedIsland) {
 		World world = Bukkit.getWorld((String)serializedIsland.get("world"));
-		this.region = new WGRegion((ProtectedCuboidRegion)WorldGuardPlugin.inst().getRegionManager(world).getRegion((String)serializedIsland.get("regionId")),
+		regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+		this.region = new WGRegion((ProtectedCuboidRegion) regionManager.getRegion((String)serializedIsland.get("regionId")),
 				world);
     	this.og = UUID.fromString((String) serializedIsland.get("og"));
     	this.balance = (Double) serializedIsland.get("balance");
@@ -54,8 +63,18 @@ public class Island implements ConfigurationSerializable {
     }
     
     public void expand(Integer x) {
-    	this.region.getRegion().setMinimumPoint(this.region.getRegion().getMinimumPoint().add(-1*x, 0, -1*x).toBlockVector());
-    	this.region.getRegion().setMaximumPoint(this.region.getRegion().getMaximumPoint().add(x, 0, x).toBlockVector());
+		BlockVector3 minPoint = region.getRegion().getMinimumPoint().add(-1*x, 0, -1*x);
+		BlockVector3 maxPoint = region.getRegion().getMaximumPoint().add(x, 0, x);
+		String id = region.getRegion().getId();
+		DefaultDomain members = region.getRegion().getMembers();
+		DefaultDomain owners = region.getRegion().getOwners();
+		Map<Flag<?>, Object> flags = region.getRegion().getFlags();
+		World world = region.world;
+		region.regionManager.removeRegion(region.getRegion().getId());
+    	region = new WGRegion(id, minPoint, maxPoint, world);
+		region.getRegion().setMembers(members);
+		region.getRegion().setOwners(owners);
+		region.getRegion().setFlags(flags);
     	size += x;
     	return;
     }

@@ -1,0 +1,28 @@
+msg_prefix: "&8[&7FI&8] "
+msg_primary: "&7"
+msg_accent: "&f"
+i_core_block: BEDROCK # Check block names at https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+i_creation_radius: 5 # How far to search for a core block when trying to claim an island
+i_creation_size: 5 # Island start radius in blocks
+i_creation_bound_x1: -5 # Relative coordinates
+i_creation_bound_z1: -5 #  of the first Island corner
+i_creation_bound_x2: 5 # Relative coordinates
+i_creation_bound_z2: 5 #  of the second Island corner
+i_creation_price: 100.0 # Price to claim an Island
+i_creation_bal: 0 # Starting balance of an Island
+i_creation_overlap_regions: 0 # How many Island regions can overlap on the core block
+i_upkeep_base: 100.0
+i_upkeep_size_multiplier: 10.0 # Upkeep cost = i_upkeep_base + i_upkeep_size_multiplier * size
+i_expansion_price: 10 # Price to expand an Island
+i_expansion_size: 5 # Increase in radius of Island expansions
+i_expansion_limit: 100 # Max Island size
+upkeep_check_ms: 3600000 # Period of time in ms between checks
+assault_reward: 7 # Assault points given per successful assault
+assault_cap: 15 # Number of assault points required to conquer an Island
+assault_decay: 1 # Number of assault points reduced per day
+assault_check_ms: 300000 # Period of time in ms between assault win checks
+conquest_cooldown: 14 # Number of days a conquered Island won't be able to be modified
+boundary_block_id: "stained_glass"
+
+f_creation_price: 100.0 # Price to create a Faction
+f_creation_bal: 0 # Starting balance of a Faction

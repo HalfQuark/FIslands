@@ -6,6 +6,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.flags.FlagContext;
+import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,11 +24,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldguard.bukkit.RegionContainer;
-import com.sk89q.worldguard.bukkit.RegionQuery;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
@@ -42,7 +46,7 @@ public class IsCommandEx implements CommandExecutor{
 	FileConfiguration config;
 	Economy economy;
 	Config islands;
-	RegionContainer regContainer = WorldGuardPlugin.inst().getRegionContainer();
+	RegionContainer regContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
 	RegionQuery regQuery = regContainer.createQuery();
 	ApplicableRegionSet set;
 	List<Island> islandList;
@@ -88,7 +92,7 @@ public class IsCommandEx implements CommandExecutor{
 					+ "You need at least " + config.getDouble("i_creation_price") + "$"));
 				return true;
 			}
-			if(WorldGuardPlugin.inst().getRegionManager(pSender.getWorld()).getRegion(args[1].toLowerCase()) != null) {
+			if(regContainer.get(BukkitAdapter.adapt(pSender.getWorld())).getRegion(args[1].toLowerCase()) != null) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
 				+ "There is already a region with this name"));
 				return true;
@@ -108,14 +112,14 @@ public class IsCommandEx implements CommandExecutor{
 			} else {
 				islandList = new ArrayList<Island>();
 			}
-			com.sk89q.worldedit.BlockVector corner1 = new com.sk89q.worldedit.BlockVector(coreLoc.getX() + config.getInt("i_creation_bound_x1")
+			BlockVector3 corner1 = BlockVector3.at(coreLoc.getX() + config.getInt("i_creation_bound_x1")
 																					, 0
 																					, coreLoc.getZ() + config.getInt("i_creation_bound_z1"));
-			com.sk89q.worldedit.BlockVector corner2 = new com.sk89q.worldedit.BlockVector(coreLoc.getX() + config.getInt("i_creation_bound_x2")
+			BlockVector3 corner2 = BlockVector3.at(coreLoc.getX() + config.getInt("i_creation_bound_x2")
 																					, 256
 																					, coreLoc.getZ() + config.getInt("i_creation_bound_z2"));
 			ProtectedCuboidRegion testRegion = new ProtectedCuboidRegion("dummy", corner1, corner2);
-			RegionManager regManager = regContainer.get(pSender.getWorld());
+			RegionManager regManager = regContainer.get(BukkitAdapter.adapt(pSender.getWorld()));
 			ApplicableRegionSet set = regManager.getApplicableRegions(testRegion);
 			if(set.size() > config.getInt("i_creation_overlap_regions")) {
 				pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")
@@ -130,7 +134,7 @@ public class IsCommandEx implements CommandExecutor{
 			islandRegion.setOwners(null);
 			islandRegion.addOwner(pSender.getName());
 			Island newIsland = new Island(islandRegion, pSender.getUniqueId(), config.getDouble("i_creation_bal"), config.getInt("i_creation_size"));
-			newIsland.region.getRegion().setFlag(DefaultFlag.TNT, StateFlag.State.DENY);
+			newIsland.region.getRegion().setFlag(Flags.TNT, StateFlag.State.DENY);
 			islandList.add(newIsland);
 			economy.withdrawPlayer(pSender, config.getDouble("i_creation_price"));
 			islands.set("Islands", islandList);
@@ -152,7 +156,7 @@ public class IsCommandEx implements CommandExecutor{
 			}
 			String isName;
 			if(args.length == 1) {
-				ApplicableRegionSet regionSet = regQuery.getApplicableRegions(pSender.getLocation());
+				ApplicableRegionSet regionSet = regQuery.getApplicableRegions(BukkitAdapter.adapt(pSender.getLocation()));
 				if(regionSet.size() > 1) {
 					pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix")
 							+ config.getString("msg_accent")+ "You are standing in multiple regions. Please specify one of the following:"));
@@ -289,7 +293,7 @@ public class IsCommandEx implements CommandExecutor{
 							return true;
 						}
 						economy.depositPlayer(pSender, island.balance);
-						RegionManager regionManager = WorldGuardPlugin.inst().getRegionManager(pSender.getWorld());
+						RegionManager regionManager = regContainer.get(BukkitAdapter.adapt(pSender.getWorld()));
 						regionManager.removeRegion(island.region.getRegion().getId());
 						islandBoundary = new IslandBoundary(pSender.getWorld(), island.region.getRegion());
 						islandBoundary.destroyBoundary();
@@ -631,14 +635,14 @@ public class IsCommandEx implements CommandExecutor{
 						}
 						island.balance -= config.getDouble("i_expansion_price");
 						island.size += config.getInt("i_expansion_size");
-						com.sk89q.worldedit.BlockVector bv1 = new com.sk89q.worldedit.BlockVector(island.region.getRegion().getMinimumPoint().getX() - config.getInt("i_expansion_size")
+						BlockVector3 bv1 = BlockVector3.at(island.region.getRegion().getMinimumPoint().getX() - config.getInt("i_expansion_size")
 																								, island.region.getRegion().getMinimumPoint().getY()
 																								, island.region.getRegion().getMinimumPoint().getZ() - config.getInt("i_expansion_size"));
-						com.sk89q.worldedit.BlockVector bv2 = new com.sk89q.worldedit.BlockVector(island.region.getRegion().getMaximumPoint().getX() + config.getInt("i_expansion_size")
+						BlockVector3 bv2 = BlockVector3.at(island.region.getRegion().getMaximumPoint().getX() + config.getInt("i_expansion_size")
 																								, island.region.getRegion().getMaximumPoint().getY()
 																								, island.region.getRegion().getMaximumPoint().getZ() + config.getInt("i_expansion_size"));
 						ProtectedCuboidRegion newRegion = new ProtectedCuboidRegion("dummy", bv1, bv2);
-						regManager = regContainer.get(pSender.getWorld());
+						regManager = regContainer.get(BukkitAdapter.adapt(pSender.getWorld()));
 						set = regManager.getApplicableRegions(newRegion);
 						if(set.size() > config.getInt("i_creation_overlap_regions") + 1) {
 							pSender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("msg_prefix") + config.getString("msg_accent")

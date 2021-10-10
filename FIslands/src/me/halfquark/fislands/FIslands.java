@@ -15,7 +15,6 @@ import me.halfquark.fislands.classes.Rank;
 import me.halfquark.fislands.commands.FCommandEx;
 import me.halfquark.fislands.commands.IsCommandEx;
 import me.halfquark.fislands.events.AssaultEventListener;
-import me.halfquark.fislands.timers.AssaultTimer;
 import me.halfquark.fislands.timers.DailyTimer;
 import net.milkbowl.vault.economy.Economy;
 
@@ -24,7 +23,6 @@ public class FIslands extends JavaPlugin {
 	public static FIslands instance;
 	public Economy economy;
 	public DailyTimer dailyTimer;
-	public AssaultTimer assaultTimer;
 	public static Config islandsConfig;
 	public static Config factionsConfig;
 	public static Config upkeepConfig;
@@ -46,12 +44,11 @@ public class FIslands extends JavaPlugin {
 		this.saveDefaultConfig();
 		getConfig().options().copyDefaults(true);
 		dailyTimer = new DailyTimer();
-		assaultTimer = new AssaultTimer();
 		Bukkit.getPluginManager().registerEvents(new AssaultEventListener(), this);
 	}
 	
 	public void onDisable() {
-		assaultTimer.stopTimer();
+
 	}
 	
 	public Economy getEconomy() {

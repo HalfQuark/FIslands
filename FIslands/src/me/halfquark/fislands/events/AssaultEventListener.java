@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.sk89q.worldguard.protection.flags.Flags;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 
 import me.halfquark.fislands.FIslands;
@@ -63,8 +63,8 @@ public class AssaultEventListener implements Listener {
 					island.region.setOwners(null);
 					island.region.addOwner(Bukkit.getPlayer(assault.getStarterUUID()).getName());
 					island.region.setMembers(null);
-					island.region.getRegion().setFlag(DefaultFlag.BLOCK_BREAK, StateFlag.State.DENY);
-					island.region.getRegion().setFlag(DefaultFlag.BLOCK_PLACE, StateFlag.State.DENY);
+					island.region.getRegion().setFlag(Flags.BLOCK_BREAK, StateFlag.State.DENY);
+					island.region.getRegion().setFlag(Flags.BLOCK_PLACE, StateFlag.State.DENY);
 					}
 					island.conquestCooldown = config.getInt("conquest_cooldown");
 					island.assaultPoints = null;

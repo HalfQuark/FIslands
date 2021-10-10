@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/FIslands/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="spigot-1.16.5" level="project" />
+    <orderEntry type="library" name="HalfChat-1.3.6" level="project" />
+    <orderEntry type="library" name="Vault1.7.3" level="project" />
+    <orderEntry type="library" name="worldguard-bukkit-7.0.5-dist" level="project" />
+    <orderEntry type="library" name="worldedit-bukkit-7.2.6" level="project" />
+    <orderEntry type="library" name="Movecraft-Warfare_a7151d51d801efdb2692bfe67faa528bb70cbfdb" level="project" />
+    <orderEntry type="library" name="Movecraft8" level="project" />
+  </component>
+</module>

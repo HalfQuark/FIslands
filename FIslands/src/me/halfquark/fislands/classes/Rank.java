@@ -25,7 +25,7 @@ public class Rank implements ConfigurationSerializable {
 	public Map<String, Object> serialize() {
 		Map<String, Object> result = new HashMap<>();
         result.put("name", name);
-        result.put("peermissions", permissions);
+        result.put("permissions", permissions);
         return result;
 	}
 
